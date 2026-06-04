@@ -12,5 +12,4 @@ Om H.265 optimalisatie toe te passen zonder server-rekenkracht:
 3. Dit forceert de download-client om direct compacte, pre-gecomprimeerde video's te downloaden.
 
 ## Automatisering
-Voeg dit toe aan de `crontab -e` van de root-gebruiker op de server om de back-up automatisch te laten verlopen:
-`0 4 * * * /bin/bash /opt/homeserver-iac/scripts/backup.sh >> /var/log/restic.log 2>&1`
+Backups via Restic (inclusief het inroosteren van een dagelijkse cronjob) worden volledig automatisch door Ansible geconfigureerd op de doelsever. Je hoeft zelf geen scripts of crontabs meer aan te raken.

@@ -2,7 +2,7 @@
 set -e
 
 export RESTIC_REPOSITORY="/mnt/usb-backup/restic-repo"
-export RESTIC_PASSWORD="JouwWachtwoordHierZelfdeAlsInVault"
+export RESTIC_PASSWORD="{{ restic_pass }}"
 
 if [ ! -d "/mnt/usb-backup/lost+found" ] && [ ! -d "$RESTIC_REPOSITORY" ]; then
     echo "ERROR: USB-stick niet gevonden!"
