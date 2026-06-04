@@ -1,0 +1,55 @@
+---
+- name: Systeem updates uitvoeren
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Basis software installeren
+  apt:
+    name: [curl, git, mergerfs, restic, ufw]
+    state: present
+
+- name: Tailscale VPN installeren via officieel script
+  shell: curl -fsSL https://tailscale.com/install.sh | sh
+  args:
+    creates: /usr/bin/tailscale
+
+- name: Tailscale activeren
+  shell: tailscale up --authkey={{ tailscale_key }}
+  register: ts_out
+  changed_when: "'already running' not in ts_out.stdout"
+
+- name: Mappen maken voor schijven en USB
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "/mnt/disk1"
+    - "/mnt/disk2"
+    - "{{ backup_usb.path }}"
+    - "{{ storage_merged }}"
+
+- name: USB Backup Stick permanent koppelen (nofail voorkomt boot issues)
+  ansible.posix.mount:
+    path: "{{ backup_usb.path }}"
+    src: "{{ backup_usb.id }}"
+    fstype: ext4
+    opts: defaults,nofail
+    state: mounted
+
+- name: Data schijven koppelen
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    src: "{{ item.id }}"
+    fstype: ext4
+    opts: defaults,noatime
+    state: mounted
+  loop: "{{ data_disks }}"
+
+- name: MergerFS virtuele map configureren
+  ansible.posix.mount:
+    path: "{{ storage_merged }}"
+    src: "/mnt/disk*"
+    fstype: fuse.mergerfs
+    opts: cache.files=partial,dropcacheonclose=true,category.create=epmfs
+    state: mounted

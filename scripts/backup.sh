@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+export RESTIC_REPOSITORY="/mnt/usb-backup/restic-repo"
+export RESTIC_PASSWORD="JouwWachtwoordHierZelfdeAlsInVault"
+
+if [ ! -d "/mnt/usb-backup/lost+found" ] && [ ! -d "$RESTIC_REPOSITORY" ]; then
+    echo "ERROR: USB-stick niet gevonden!"
+    exit 1
+fi
+
+echo "Stoppen containers voor consistente backup..."
+docker stop jellyfin radarr sonarr prowlarr bazarr dispatcharr seerr || true
+
+echo "Start Restic backup..."
+restic backup /opt/appdata \
+  --exclude="/opt/appdata/jellyfin/metadata" \
+  --exclude="/opt/appdata/jellyfin/transcodes"
+
+echo "Containers herstarten..."
+docker start seerr dispatcharr bazarr prowlarr sonarr radarr jellyfin || true
+
+echo "Schoonmaak oude backups..."
+restic forget --keep-daily 7 --keep-weekly 4 --prune

@@ -1,0 +1,24 @@
+---
+timezone: "Europe/Brussels"
+puid: "1000"
+pgid: "1000"
+appdata_dir: "/opt/appdata"
+storage_merged: "/mnt/storage"
+
+# Vraag deze UUIDs op via 'blkid' in de terminal
+data_disks:
+  - id: "UUID=1111-2222-3333-4444"
+    path: "/mnt/disk1"
+  - id: "UUID=5555-6666-7777-8888"
+    path: "/mnt/disk2"
+
+backup_usb:
+  id: "UUID=9999-AAAA-BBBB-CCCC"
+  path: "/mnt/usb-backup"
+
+# Secrets geëxtraheerd uit de Ansible Vault
+vpn_provider: "{{ vault_vpn_provider }}"
+vpn_user: "{{ vault_vpn_user }}"
+vpn_pass: "{{ vault_vpn_password }}"
+tailscale_key: "{{ vault_tailscale_key }}"
+restic_pass: "{{ vault_restic_password }}"

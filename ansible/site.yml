@@ -1,0 +1,8 @@
+---
+- name: Deploy Lean & Mean Homeserver
+  hosts: homeservers
+  become: yes
+  roles:
+    - base
+    - docker
+    - media_stack
