@@ -6,8 +6,17 @@
 
 - name: Install base software
   ansible.builtin.apt:
-    name: [curl, git, mergerfs, restic, ufw]
+    name: [curl, git, mergerfs, restic, ufw, unattended-upgrades]
     state: present
+
+# Security patches install themselves; everything else stays under Git control
+- name: Enable automatic security updates
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: '0644'
 
 - name: Download Tailscale install script
   ansible.builtin.get_url:
@@ -20,10 +29,18 @@
   args:
     creates: /usr/bin/tailscale
 
-- name: Bring Tailscale up
+# The auth key is only needed (and only valid) for the initial login. Checking
+# first keeps redeploys working after the key expires.
+- name: Check whether Tailscale is already connected
+  ansible.builtin.command: tailscale status
+  register: base_ts_status
+  changed_when: false
+  failed_when: false
+
+- name: Bring Tailscale up (first run only)
   ansible.builtin.command: tailscale up --authkey={{ tailscale_key }}
-  register: base_ts_out
-  changed_when: "'already running' not in base_ts_out.stdout"
+  when: base_ts_status.rc != 0
+  changed_when: true
   no_log: true
 
 - name: UFW - allow SSH (rate-limited to avoid lockout)
