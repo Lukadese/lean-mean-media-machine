@@ -20,6 +20,7 @@ Everything — the OS, disks, networking, containers and backups — is describe
 - [Accessing your services](#accessing-your-services)
 - [First-run configuration](#first-run-configuration)
 - [Backups & disaster recovery](#backups--disaster-recovery)
+- [Running it for years](#running-it-for-years)
 - [Image versioning](#image-versioning)
 - [Repository layout](#repository-layout)
 - [Contributing & support](#contributing--support)
@@ -259,6 +260,29 @@ sudo /opt/scripts/restore.sh
 > ⚠️ **Guard your two recovery keys.** Everything can be rebuilt from Git **plus** your vault password (unlocks the secrets) **plus** the Restic password inside the vault (unlocks the backups). Store the vault password in a password manager that lives outside your house (e.g. a cloud-synced password manager). If both your laptop and server are lost and you don't have the vault password, your backups are unrecoverable — by design.
 
 Full step-by-step recovery instructions are in **[BOOTSTRAP.md](BOOTSTRAP.md#3-disaster-recovery-restore)**.
+
+---
+
+## Running it for years
+
+This project is built to run unattended — but "zero maintenance" software doesn't exist, so here is the honest split:
+
+| The server handles by itself | What's left for you |
+|---|---|
+| Security updates, including the reboot kernel patches need | **Monthly (~5 min):** rerun the playbook — see below |
+| Daily encrypted backups + weekly integrity checks | **Yearly:** rehearse a restore: `sudo /opt/scripts/restore.sh --test` |
+| Daily watchdog: disk space, disk health (SMART), containers | **Every ~2 years:** upgrade Debian to the new stable release, then rerun the playbook |
+| VPN server-list refresh, SnapRAID sync/scrub, log rotation | **When an alert email arrives:** read it — it says exactly what's wrong |
+
+**The monthly playbook run is the one habit that matters:**
+
+```bash
+cd ansible && ansible-playbook -i inventory/hosts.yml site.yml --vault-password-file ../.vault_pass
+```
+
+It patches the OS and pulls the latest version of every container. Monthly means small, low-risk version steps. Skipping it for a year means jumping every app across many major versions at once — the riskiest way to update anything. Put a recurring reminder in your calendar; it's five minutes, usually less.
+
+**When a disk dies** — and over the years, one will — the watchdog emails you. Your appdata is covered by the backups, and with [SnapRAID parity](#what-you-get) even the media on the dead disk survives. Follow the [disk replacement runbook in BOOTSTRAP.md](BOOTSTRAP.md#4-replacing-a-failed-disk).
 
 ---
 
