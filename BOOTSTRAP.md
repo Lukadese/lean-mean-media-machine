@@ -1,6 +1,6 @@
 # Install & Disaster Recovery Guide
 
-This guide covers installing the homeserver from scratch (bootstrapping), verifying your backups, and restoring after a crash (disaster recovery).
+This guide covers installing the homeserver from scratch (bootstrapping), verifying your backups, restoring after a crash (disaster recovery) and replacing a failed disk.
 
 ---
 
@@ -238,3 +238,41 @@ docker compose --project-directory /opt/appdata up -d
 ```
 
 Your media server is now fully restored and operational again.
+
+---
+
+## 4. Replacing a failed disk
+
+Over the years a disk will die — the daily watchdog emails you when SMART reports a failing drive, or when a disk has dropped out. Nothing about this is an emergency: your appdata is in the backups, and the steps below get the media back too.
+
+### A failed data disk
+
+1. Physically replace the disk, format the new one (`sudo mkfs.ext4 /dev/sdX1`) and read its UUID with `sudo blkid`.
+2. In `ansible/inventory/group_vars/all.yml`, replace the dead disk's UUID under `data_disks` with the new one (keep the same `path`).
+3. Redeploy: the new disk is mounted and rejoins the MergerFS pool automatically.
+   ```bash
+   cd ansible && ansible-playbook -i inventory/hosts.yml site.yml --vault-password-file ../.vault_pass
+   ```
+4. Get the data back:
+   - **With SnapRAID parity:** rebuild the dead disk's contents onto the new one:
+     ```bash
+     sudo snapraid fix -d d1   # replace d1 with the disk's name from /etc/snapraid.conf
+     ```
+     The daily maintenance run takes over from there.
+   - **Without parity:** the media on that disk is gone, but Radarr/Sonarr still know about every item. Select the missing items in each app and trigger a search — your library re-downloads itself over time.
+
+### A failed backup drive
+
+1. Replace the drive, format it, and update the UUID under `backup_usb` in `all.yml`.
+2. Redeploy. The next backup run re-initialises the Restic repository automatically — but your old snapshots are gone, so trigger a fresh backup right away:
+   ```bash
+   sudo /opt/scripts/backup.sh
+   ```
+
+### A failed parity disk
+
+1. Replace the drive, format it, and update the UUID under `snapraid_parity_disks` in `all.yml`.
+2. Redeploy, then rebuild parity:
+   ```bash
+   sudo snapraid sync
+   ```
