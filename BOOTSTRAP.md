@@ -171,19 +171,29 @@ Do this in both apps:
 - Root folder: **Settings → Media Management → Add Root Folder** → `/data/media/movies` (Radarr) / `/data/media/tv` (Sonarr).
 - Download client: **Settings → Download Clients → + → qBittorrent** → host `gluetun`, port `8080`, and the username/password from step 1.
 
-**4. Jellyfin — `http://<server>:8096`**
+**4. Bazarr — `http://<server>:6767`** *(automatic subtitles in your language)*
+
+- Set up authentication on first visit (**Settings → General → Security**).
+- Create your language profile: **Settings → Languages** → add your language(s) under *Languages Filter* (e.g. **Dutch**, optionally English as fallback) → create a **Language Profile** with them → set it as the **default profile for both series and movies**.
+- Add subtitle providers under **Settings → Providers → +** — for Dutch, [OpenSubtitles.com](https://www.opensubtitles.com) (free account) plus a few no-account providers like Podnapisi and Gestdown work well.
+- Connect the *arrs: **Settings → Sonarr** → enable, host `sonarr`, port `8989`, its API key — and the same under **Settings → Radarr** with `radarr`, port `7878`.
+
+From now on every new (and existing) download automatically gets subtitles in your chosen language, saved next to the media file — and Bazarr upgrades them later if a better match appears.
+
+**5. Jellyfin — `http://<server>:8096`**
 
 - Run the first-time wizard: create your admin account and add two libraries: **Movies** → `/data/media/movies` and **Shows** → `/data/media/tv`.
 - Enable hardware transcoding: **Dashboard → Playback → Transcoding** → Hardware acceleration = **Intel QuickSync (QSV)**. The GPU device is already mapped into the container for you.
+- *(Optional)* make subtitles appear automatically: per user under **Settings → Subtitles**, set *Preferred subtitle language* (e.g. Dutch) and *Subtitle mode* = **Default** — Jellyfin then auto-selects the subs Bazarr downloaded.
 
-**5. Jellyseerr — `http://<server>:5055`** *(where you and your housemates request media)*
+**6. Jellyseerr — `http://<server>:5055`** *(where you and your housemates request media)*
 
 - Choose **Use your Jellyfin account**, Jellyfin URL `http://jellyfin:8096`, and sync the libraries.
 - Under **Settings → Services**, add:
   - **Radarr**: hostname `radarr`, port `7878`, its API key, quality profile, root folder `/data/media/movies`, mark as default.
   - **Sonarr**: hostname `sonarr`, port `8989`, its API key, root folder `/data/media/tv`, mark as default.
 
-**✅ Test the pipeline:** request a movie in Jellyseerr → Radarr grabs it via your Prowlarr indexers → qBittorrent downloads it to `/data/torrents` (through the VPN) → Radarr instantly hardlinks it into `/data/media/movies` → it appears in Jellyfin. If that works, you're done — everything from here on is automatic.
+**✅ Test the pipeline:** request a movie in Jellyseerr → Radarr grabs it via your Prowlarr indexers → qBittorrent downloads it to `/data/torrents` (through the VPN) → Radarr instantly hardlinks it into `/data/media/movies` → it appears in Jellyfin, and minutes later Bazarr adds subtitles in your language. If that works, you're done — everything from here on is automatic.
 
 ### Optional: auto-download trending content (Top 10 lists)
 
