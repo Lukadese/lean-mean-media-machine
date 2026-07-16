@@ -229,7 +229,7 @@ After deployment, browse to your server's IP (on your LAN or over Tailscale) on 
 
 ## First-run configuration
 
-After the deploy everything is *running*, but the apps don't know each other yet. One guided, one-time walkthrough (~30 minutes) connects them: qBittorrent's hidden first-run password and save path, your indexers in Prowlarr, the download client and root folders in Radarr/Sonarr, Jellyfin's libraries + QuickSync, and Jellyseerr on top. After that, requesting a movie in Jellyseerr makes it appear in Jellyfin fully automatically.
+After the deploy everything is *running*, but the apps don't know each other yet. One guided, one-time walkthrough (~30 minutes) connects them: qBittorrent's hidden first-run password and save path, your indexers in Prowlarr, the download client and root folders in Radarr/Sonarr, automatic subtitles in your language via Bazarr, Jellyfin's libraries + QuickSync, and Jellyseerr on top. After that, requesting a movie in Jellyseerr makes it appear in Jellyfin fully automatically — subtitles included.
 
 👉 **Follow [Step 8: Wire up the apps in BOOTSTRAP.md](BOOTSTRAP.md#step-8-wire-up-the-apps-one-time-30-minutes)** — every click is written out, including the gotchas.
 
